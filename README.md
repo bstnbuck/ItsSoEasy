@@ -32,7 +32,7 @@ Very! The program uses AES-256 encrption mode. The Keys where sent by the server
 
 ### System-, Network architecture & Usage (only for educational testing!):
 This is the test-environment I've used.
-![Network Overview](img/network.png)
+![Network Overview](img/network.PNG)
 * Server: VBox Debian Linux Buster (Version 10) with 
 	* host-only-adapter
 	* static ip: paste it into client.py
@@ -77,17 +77,17 @@ This is the test-environment I've used.
 
 
 ### Full Procedure
-![procedure](img/procedure.png)
+![procedure](img/procedure.PNG)
 
 
 ### Some screenshots while ItsSoEasy is in action :D
 
 * A friendly welcome message
-![linux_whoops](img/linux_whooops.png)
-![windows_whoops](img/windows_whoops.png)
+![linux_whoops](img/linux_whooops.PNG)
+![windows_whoops](img/windows_whoops.PNG)
 
 * How to pay (opened in default browser)
-![ransom_message](img/ransom_message.png)
+![ransom_message](img/ransom_message.PNG)
 
 * The Clou: Is it easy enough for you? ;)
-![the_clou](img/itssoeasy.png)
+![the_clou](img/itssoeasy.PNG)
