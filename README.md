@@ -19,8 +19,8 @@ Very! The program uses AES-256 encrption mode. The Keys where sent by the server
 ### Requirements:
 * Python 3.7.9
 * to install the requirements use pip with following command:
-	-> python3 -m pip install -r requirements.txt
-	-> installation of Tkinter with Linux or Windows commands
+	* ```python3 -m pip install -r requirements.txt```
+	* installation of Tkinter with Linux or Windows commands
 
 ### Files:
 * client.py -> the ransomware client
@@ -71,7 +71,7 @@ This is the test-environment I've used.
 
 	* Install without binarys (if ip-addresses or ports has changed):
 		* use described python version and requirements
-		* create a (obfuscated) binary of client.py with pyinstaller or pyarmor (see elaboration)
+		* create a (obfuscated) binary of client.py with pyinstaller or pyarmor
 		* pack setup.py with compiled client.py with pymakeself
 		* create binary from packed python file with pyinstaller
 
