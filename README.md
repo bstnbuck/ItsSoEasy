@@ -9,7 +9,8 @@
 This is a Ransomware Concept written in Python, Go and C99. Yes it is malicious. Yes, if you do that on VMs it is okay. Yes, if you misconfigured the architecture or network and encrypt your own files they are gone forever. 
 
 ### Why?
-This PoC I've written for some educational projects. Only for that! And because I am very interested in the topics of how malware is detected and works. :D By the way, on Windows only 4 from 71 AV-Scanners detected the packaged and obfuscated client. On Linux only 1!
+This PoC I've written for some educational projects. Only for that! And because I am very interested in the topics of how malware is detected and works. :D By the way, on Windows only 4 from 71 AV-Scanners detected the packaged and obfuscated client. On Linux only 1! 
+* see: [Virustotal ItsSoEasy Collection](https://www.virustotal.com/gui/collection/2f9db19a09b0bbf638b9ea876dc6f32d0191117f65810906fb2d55e96fbfa410)
 
 ### How malicious is it?
 Very, by using a alternative hybrid technique! The program uses AES-256 symmetric encrption mode for file encryption. The Keys where sent by the server using TLSv1.{2,3}. The Keys where directly deleted  after (en-) decryption. 
