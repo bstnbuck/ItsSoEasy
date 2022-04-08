@@ -1,0 +1,15 @@
+Install requirements:
+pip install -r requirements.txt
+
+
+Windows:
+pyinstaller –-onefile –-uac-admin itssoeasy.py
+
+Linux:
+python3 -m PyInstaller –-onefile itssoeasy.py
+
+
+
+Create PyArmor obfuscated file on both OS:
+pip install pyarmor
+python(3) -m pyarmor.pyarmor pack -e" --onefile" >input-file<

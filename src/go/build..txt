@@ -1,0 +1,5 @@
+Windows:
+go build -o <file-name>.exe .
+
+Linux:
+go build -o <file-name> . 

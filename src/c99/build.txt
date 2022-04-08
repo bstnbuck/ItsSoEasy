@@ -1,0 +1,5 @@
+Windows:
+gcc main.c src/b64.h src/b64.c src/helper.h src/helper.c src/openssl/ssl.h src/openssl/aes.h src/openssl/libssl.a src/openssl/libcrypto.a src/openssl/libz.a -lws2_32 -lgdi32 -lopengl32 -Wall
+
+Linux:
+gcc main.c src/b64.h src/b64.c src/helper.h src/helper.c -lcrypto -lssl -Wall
