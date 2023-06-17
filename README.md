@@ -6,7 +6,7 @@
 > Attention! Use of the code samples and proof-of-concepts shown here is permitted solely at your own risk for academic and non-malicious purposes. It is the end user's responsibility to comply with all applicable local, state, and federal laws. The developer assumes no liability and is not responsible for any misuse or damage caused by this tool and the software in general.
 
 ### What?
-This is a Ransomware Concept written in Python, Go and C99. Yes it is malicious. Yes, if you do that on VMs it is okay. Yes, if you misconfigured the architecture or network and encrypt your own files they are gone forever. 
+This is a Ransomware Concept written in Python, Go and C99. Yes it is malicious. Yes, if you do that on your own VMs it is okay. Yes, if you misconfigured the architecture or network and encrypt your own files they are gone forever. 
 
 ### Why?
 This PoC I've written for some educational projects. Only for that! And because I am very interested in the topics of how malware is detected and works. :D By the way, on Windows only 4 from 71 AV-Scanners detected the packaged and obfuscated client. On Linux only 1! 
@@ -87,7 +87,7 @@ Very, by using a alternative hybrid technique! The program uses AES-256 symmetri
 	  
 
 #### Requirements
-* Go 1.17 and higher
+* Go 1.20 and higher
 
 #### Files:
 * main.go -> the ransomware client
@@ -136,15 +136,14 @@ This is the test-environment I've used.
 	* host-only-adapter
 	* static ip: paste it into client file
 	* for example Apache2 with website for delivery
-	* MariaDB (MySQL) 
-		* with user root and password toor (or change it :D)
+	* local SQLite (nothing to do...)
 		* database `itsSoEasy` and table `clients`
 			* columns:
-				* `id` : int, primary key, auto-increment, no-null
-				* `userIdentity` : varchar(255), no-null
-				* `userKey` : varchar(100), no-null
-				* `userIV` : varchar(100), no-null
-				* `additional` : varchar(255)
+				* `id` : int, primary key, no-null
+				* `userIdentity` : text, no-null
+				* `userKey` : text, no-null
+				* `userIV` : text, no-null
+				* `additional` : text
 	* itsSoEasy-Server -> `server.py`:
 		* port 6666
 		* creates logging file
